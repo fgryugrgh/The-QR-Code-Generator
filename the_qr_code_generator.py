@@ -11,21 +11,23 @@ root.geometry("1160x650")
 root.resizable(width = True, height = True)
 
 is_micro = True
+errorc_level = 'm'
 
 def save_qr():
     global pilqr
     global user_qr_input
+    global errorc_level
     global is_micro
     user_qr_input = textinput.get('1.0', 'end-1c') 
     if len(user_qr_input) > 14:
         is_micro = False
         microtoggle.config(state=tk.DISABLED, text="Off")
-    elif microtoggle.cget("state") == "disabled":
+    elif microtoggle.cget("state") == "disabled" and errorc_level != 'h':
         is_micro = True
         microtoggle.config(state=tk.NORMAL, text="On")
-    qr = segno.make(user_qr_input)
+    qr = segno.make(user_qr_input, error=errorc_level, boost_error=False)
     if not is_micro:
-        qr = segno.make_qr(user_qr_input)
+        qr = segno.make_qr(user_qr_input, error=errorc_level, boost_error=False)
     qr.mask
     buffer = io.BytesIO()
     qr.save(buffer, kind='png')
@@ -56,6 +58,16 @@ def toggle_micro():
         microtoggle.config(text="On")
     save_qr()
 
+def update_label(val):
+    global errorc_level
+    index = int(val)
+    errorc_value.set(errorc_labels[index])
+    errorc_level = errorc_labels_compute[index]
+    if errorc_level == 'h':
+        is_micro = False
+        microtoggle.config(state=tk.DISABLED, text="Off")
+    save_qr()
+
 left_frame = tk.Frame(root, width=300)
 left_frame.pack(side="left", fill="both", expand=True)
 
@@ -78,11 +90,24 @@ saveqr = tk.Button(buttons_frame, text="Save The QR Code!", command=save_qr_to_d
 saveqr.grid(row=1, column=1, padx=5, pady=5)
 
 microtoggle_label = tk.Label(toggles_frame, text="Micro QR Code:")
-'1-Q'
 microtoggle_label.grid(row=0, column=0, padx=5, sticky=NW)
 
 microtoggle = tk.Button(toggles_frame, text="On", command=toggle_micro)
 microtoggle.grid(row=0, column=1, padx=5, sticky=NW)
 
+errorc_labels_compute = ['l', 'm', 'q', 'h']
+errorc_labels = ['7%', '15%', '25%', '30%']
+errorc_value = tk.StringVar()
+
+errorclabels = tk.Label(toggles_frame, text="Error Correction Level:")
+errorclabels.grid(row=1,column=0, padx=5)
+
+errorcorrection = tk.Scale(toggles_frame, from_=0, to=3,orient='horizontal', command=update_label, showvalue=0)
+errorcorrection.grid(row=1, column=1, padx=1)
+
+label = tk.Label(toggles_frame, textvariable=errorc_value)
+label.grid(row=1, column=2, padx=5, pady=5)
+
+errorc_value.set(errorc_labels[0])
+
 root.mainloop()
-#test ssh 
