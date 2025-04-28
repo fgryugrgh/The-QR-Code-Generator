@@ -68,6 +68,9 @@ def update_label(val):
         microtoggle.config(state=tk.DISABLED, text="Off")
     save_qr()
 
+def callback(event):
+    root.after(1, save_qr)
+
 left_frame = tk.Frame(root, width=300)
 left_frame.pack(side="left", fill="both", expand=True)
 
@@ -79,6 +82,8 @@ buttons_frame.grid(row=1, column=0)
 
 textinput = tk.Text(left_frame, height=3, width=40)
 textinput.grid(row=0, column=0, padx=5, pady=5)
+
+textinput.bind("<Key>", callback)
 
 toggles_frame = tk.Frame(left_frame, height=300)
 toggles_frame.grid(row=3, column=0, padx=5, pady=50, sticky=NW)
