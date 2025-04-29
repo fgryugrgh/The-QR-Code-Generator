@@ -17,6 +17,7 @@ logo_filepath = None
 
 logosize = 3
 is_micro = True
+is_warning = False
 errorc_level = 'm'
 
 def removelogo():
@@ -57,7 +58,6 @@ def save_qr():
     qr = segno.make(user_qr_input, error=errorc_level, boost_error=False)
     if not is_micro:
         qr = segno.make_qr(user_qr_input, error=errorc_level, boost_error=False)
-    qr.mask
     buffer = io.BytesIO()
     qr.save(buffer, kind='png')
     buffer.seek(0)
@@ -84,10 +84,17 @@ def place_logo():
 
 def show_qr():
     global pilqr
+    global panel
+    global warninglabel
+    global panel
+    global is_warning
+    global photoqr
     photoqr = ImageTk.PhotoImage(pilqr)
-    panel = Label(right_frame, image=photoqr)
-    panel.image = photoqr
-    panel.place(relx=.5, rely=.5, anchor="c")
+    if is_warning:
+        warninglabel.config(text="⚠ The QR Code might be hard to scan! \nplease check it before you deploy")
+    else:
+        warninglabel.config(text="")
+    panel.config(image = photoqr)
 
 def save_qr_to_disk():
     global pilqr
@@ -95,7 +102,6 @@ def save_qr_to_disk():
 
 def toggle_micro():
     global is_micro
-
     if is_micro:
         is_micro = False
         microtoggle.config(text="Off")
@@ -115,8 +121,13 @@ def update_label(val):
     save_qr()
 
 def update_size(val):
+    global is_warning
     global logosize
     logosize = float(val)
+    if logosize < 3:
+        is_warning = True
+    else:
+        is_warning = False
     save_qr()
 
 def callback(event):
@@ -127,6 +138,16 @@ left_frame.pack(side="left", fill="both", expand=True)
 
 right_frame = tk.Frame(root, width=300)
 right_frame.pack(side="right", fill="both", expand=True)
+
+right_center = tk.Frame(right_frame)
+right_center.pack(expan=True)
+
+placeholder = ImageTk.PhotoImage(Image.new('RGB', (100, 100), color = 'gray'))
+panel = Label(right_center, image=placeholder)
+panel.pack()
+
+warninglabel = tk.Label(right_center, text="", fg='red')
+warninglabel.pack()
 
 buttons_frame = tk.Frame(left_frame, height=300)
 buttons_frame.grid(row=1, column=0, sticky=NW)
